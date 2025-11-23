@@ -22,8 +22,30 @@ export default function ProjectPage() {
   const [newTitle, setNewTitle] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Detect dark mode for button text
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  // AI Title Suggestions as you type (Copilot-style)
+  useEffect(() => {
+    if (!newTitle.trim()) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/ai-suggest-title', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefix: newTitle }),
+        });
+        if (res.ok) {
+          const { suggestions } = await res.json();
+          if (suggestions?.[0]) {
+            setNewTitle(suggestions[0]); // Auto-complete first suggestion
+          }
+        }
+      } catch (err) {
+        console.warn('AI title suggestion failed');
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [newTitle]);
 
   const handleAdd = () => {
     if (!newTitle.trim()) return;
@@ -48,41 +70,15 @@ export default function ProjectPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: newTitle }),
       });
-  
       if (!res.ok) throw new Error();
-  
       const data = await res.json();
       const suggestedStatus = (data.status || 'TODO') as TaskStatus;
-  
-      // ADD THIS: CONFETTI + VICTORY SOUND WHEN DONE
+
       if (suggestedStatus === 'DONE') {
-        // Victory sound
         new Audio('https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3').play().catch(() => {});
-  
-        // Confetti explosion
-        import('canvas-confetti').then((confetti) => {
-          const count = 200;
-          const defaults = {
-            origin: { y: 0.6 },
-            zIndex: 9999,
-          };
-  
-          function fire(particleRatio: number, opts: any) {
-            confetti.default({
-              ...defaults,
-              ...opts,
-              particleCount: Math.floor(count * particleRatio),
-            });
-          }
-  
-          fire(0.25, { spread: 26, startVelocity: 55 });
-          fire(0.2, { spread: 60 });
-          fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-          fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-          fire(0.1, { spread: 120, startVelocity: 45 });
-        });
+        import('canvas-confetti').then((c) => c.default({ particleCount: 300, spread: 70, origin: { y: 0.6 } }));
       }
-  
+
       addTask({
         id: crypto.randomUUID(),
         projectId,
@@ -92,15 +88,13 @@ export default function ProjectPage() {
         configuration: {},
         dependencies: [],
         comments: data.reason
-          ? [
-              {
-                id: Date.now().toString(),
-                taskId: '',
-                author: 'AI Assistant',
-                content: `Suggested ${suggestedStatus.replace('_', ' ')} because: ${data.reason}`,
-                timestamp: Date.now(),
-              },
-            ]
+          ? [{
+              id: Date.now().toString(),
+              taskId: '',
+              author: 'AI Assistant',
+              content: `Suggested ${suggestedStatus.replace('_', ' ')} because: ${data.reason}`,
+              timestamp: Date.now(),
+            }]
           : [],
       });
       setNewTitle('');
@@ -113,7 +107,7 @@ export default function ProjectPage() {
 
   return (
     <div className="min-h-screen">
-      {/* HERO HEADER */}
+      {/* HERO */}
       <div className="relative overflow-hidden bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-purple-900 dark:to-indigo-950 text-white shadow-2xl">
         <div className="absolute inset-0 bg-black opacity-50 dark:opacity-70"></div>
         <div className="relative px-8 py-16">
@@ -123,91 +117,123 @@ export default function ProjectPage() {
                 TaskFlow <span className="text-yellow-400">AI</span>
               </h1>
               <p className="text-2xl mt-3 opacity-90 font-light">
-                Real-time • AI-Powered • Zero Backend • Undo Everything
+                Real-time • AI-Powered • Zero Backend • Templates + Autocomplete
               </p>
             </div>
             <div className="flex gap-6 items-center">
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={undo}
-                className="bg-white/20 backdrop-blur-lg hover:bg-white/30 border border-white/40 text-white font-bold"
-              >
+              <Button variant="secondary" size="lg" onClick={undo} className="bg-white/20 backdrop-blur-lg hover:bg-white/30 border border-white/40 text-white font-bold">
                 ← Undo
               </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={redo}
-                className="bg-white/20 backdrop-blur-lg hover:bg-white/30 border border-white/40 text-white font-bold"
-              >
+              <Button variant="secondary" size="lg" onClick={redo} className="bg-white/20 backdrop-blur-lg hover:bg-white/30 border border-white/40 text-white font-bold">
                 Redo →
               </Button>
-
-              {/* DARK MODE TOGGLE — THE ONE LINE THAT CHANGES EVERYTHING */}
               <Button
                 onClick={() => document.documentElement.classList.toggle('dark')}
-                className="bg-white/20 backdrop-blur-lg hover:bg-white/30 border border-white/40 text-white font-bold px-8 py-4 rounded-full shadow-xl transition-all duration-500"
+                className="bg-white/20 backdrop-blur-lg hover:bg-white/30 border border-white/40 text-white font-bold px-8 py-4 rounded-full shadow-xl"
               >
-                {isDark ? 'Light Mode' : 'Dark Mode'}
+                {typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'Light' : 'Dark'}
               </Button>
             </div>
           </div>
         </div>
-
-        {/* Floating particles — glow in dark mode */}
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-3 h-3 bg-white rounded-full opacity-70 animate-ping dark:opacity-90 dark:blur-sm"
-              style={{
-                top: `${10 + i * 11}%`,
-                left: `${5 + i * 12}%`,
-                animationDelay: `${i * 0.4}s`,
-                animationDuration: `${3 + i * 0.5}s`,
-                boxShadow: isDark ? '0 0 20px #a855f7' : 'none',
-              }}
-            />
-          ))}
-        </div>
       </div>
 
       <div className="p-8 pb-32">
-        {/* AI INPUT WITH NEON GLOW */}
+        {/* TEMPLATES + AI INPUT */}
         <div className="max-w-6xl mx-auto mb-16">
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-3xl blur-xl opacity-70 group-hover:opacity-100 transition duration-1000 animate-tilt dark:from-purple-500 dark:via-pink-500 dark:to-cyan-500 dark:opacity-90"></div>
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-3xl blur-xl opacity-70 group-hover:opacity-100 transition duration-1000 animate-tilt dark:opacity-90"></div>
             <div className="relative bg-white dark:bg-gray-900/95 rounded-3xl p-10 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 backdrop-blur-xl">
+
+              {/* TASK TEMPLATES */}
+              <div className="flex gap-4 mb-8 justify-center flex-wrap">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    addTask({
+                      id: crypto.randomUUID(),
+                      projectId,
+                      title: 'Fix login authentication bug',
+                      status: 'IN_PROGRESS',
+                      assignedTo: [],
+                      configuration: {},
+                      dependencies: [],
+                      comments: [
+                        { id: Date.now().toString(), taskId: '', author: 'Bug Template', content: 'Steps to reproduce:', timestamp: Date.now() },
+                        { id: (Date.now()+1).toString(), taskId: '', author: 'Bug Template', content: 'Expected behavior:', timestamp: Date.now() },
+                        { id: (Date.now()+2).toString(), taskId: '', author: 'Bug Template', content: 'Actual behavior:', timestamp: Date.now() },
+                      ],
+                    });
+                  }}
+                  className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold"
+                >
+                  Bug Report
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    addTask({
+                      id: crypto.randomUUID(),
+                      projectId,
+                      title: 'Add dark mode support',
+                      status: 'TODO',
+                      assignedTo: [],
+                      configuration: {},
+                      dependencies: [],
+                      comments: [
+                        { id: Date.now().toString(), taskId: '', author: 'Feature Template', content: 'User story: As a user, I want dark mode so my eyes don’t hurt at night', timestamp: Date.now() },
+                        { id: (Date.now()+1).toString(), taskId: '', author: 'Feature Template', content: 'Acceptance criteria:\n- Toggle in header\n- Persists across sessions', timestamp: Date.now() },
+                      ],
+                    });
+                  }}
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 font-bold"
+                >
+                  New Feature
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    addTask({
+                      id: crypto.randomUUID(),
+                      projectId,
+                      title: 'Release v2.0 to production',
+                      status: 'DONE',
+                      assignedTo: [],
+                      configuration: {},
+                      dependencies: [],
+                      comments: [
+                        { id: Date.now().toString(), taskId: '', author: 'Release Template', content: 'Deployed to production at ' + new Date().toLocaleString(), timestamp: Date.now() },
+                        { id: (Date.now()+1).toString(), taskId: '', author: 'Release Template', content: 'Monitoring: No errors reported', timestamp: Date.now() },
+                      ],
+                    });
+                    import('canvas-confetti').then(c => c.default({ particleCount: 300, spread: 360 }));
+                  }}
+                  className="border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 font-bold"
+                >
+                  Release
+                </Button>
+              </div>
+
+              {/* MAIN INPUT + AI */}
               <div className="flex gap-5 items-center">
                 <Input
-                  placeholder="Describe your task... AI will place it perfectly"
+                  placeholder="Or type your own... AI will autocomplete"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleAdd()}
-                  className="text-xl h-16 border-2 border-purple-200 dark:border-purple-700 focus:border-purple-500 dark:focus:border-purple-400 transition-all bg-white/80 dark:bg-gray-800/80"
+                  className="text-xl h-16 border-2 border-purple-200 dark:border-purple-700 focus:border-purple-500 transition-all"
                   disabled={isLoading}
                 />
-                <Button
-                  onClick={handleAdd}
-                  size="lg"
-                  className="h-16 px-10 text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 dark:from-blue-500 dark:to-purple-500"
-                  disabled={isLoading}
-                >
+                <Button onClick={handleAdd} size="lg" disabled={isLoading}>
                   Add Task
                 </Button>
-                <Button
-                  size="lg"
-                  onClick={handleAISuggest}
-                  disabled={isLoading || !newTitle.trim()}
-                  className="relative h-16 px-12 text-lg font-bold overflow-hidden bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white shadow-2xl transform hover:scale-105 transition-all duration-300 dark:from-purple-600 dark:via-pink-600 dark:to-cyan-600"
-                >
-                  <span className="relative z-10">
-                    {isLoading ? 'Thinking...' : 'AI Magic'}
-                  </span>
-                  {!isLoading && (
-                    <span className="absolute inset-0 bg-white opacity-30 animate-ping dark:opacity-50"></span>
-                  )}
+                <Button onClick={handleAISuggest} disabled={isLoading || !newTitle.trim()}>
+                  {isLoading ? 'Thinking...' : 'AI Magic'}
                 </Button>
               </div>
             </div>
