@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tasks   Task[]
+  events  Event[]
+}
+
+model Task {
+  id            String   @id @default(cuid())
+  projectId     String
+  title         String
+  status        String   @default("TODO")
+  assignedTo    String   @default("[]")    // ← Store as JSON string
+  configuration String   @default("{}")    // ← Store as JSON string
+  dependencies  String   @default("[]")    // ← Store as JSON string
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  taskId    String
+  content   String
+  author    String   @default("Anonymous")
+  timestamp DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  projectId String
+  type      String
+  payload   Json
+  clientId  String
+  seq       Int
+  timestamp DateTime @default(now())
+  version   Int      @default(0)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
