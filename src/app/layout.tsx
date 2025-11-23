@@ -2,14 +2,12 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { TRPCProvider } from '@/components/providers';
-
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'TaskFlow - Real-time Collaborative Tasks',
-  description: 'No Firebase. No Supabase. Pure self-hosted real-time.',
+  title: 'TaskFlow AI',
+  description: 'Real-time AI-powered Kanban — zero backend',
 };
 
 export default function RootLayout({
@@ -19,8 +17,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <TRPCProvider>{children}</TRPCProvider>
+      <body className={`${inter.className} bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 min-h-screen`}>
+        {children}
       </body>
     </html>
   );
