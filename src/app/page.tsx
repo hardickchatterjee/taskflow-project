@@ -74,17 +74,17 @@ export default function Home() {
           )}
 
           {/* DEMO BUTTON */}
-          {/* <div className="mt-10">
-            <Link href="/projects/demo">
+          <div className="mt-10">
+            <Link href="/projects/demo-project">
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white/40 text-white hover:bg-white/10 hover:text-white backdrop-blur-xl"
+                className="border-white/60 text-red-300 hover:bg-white/10 hover:text-black-300 backdrop-blur-xl"
               >
                 Open Demo Project
               </Button>
             </Link>
-          </div> */}
+          </div>
         </div>
       </div>
 

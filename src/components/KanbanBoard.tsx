@@ -1,7 +1,7 @@
 // src/components/KanbanBoard.tsx
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTaskStore, Task, TaskStatus } from '@/store/useTaskStore';
 import {
   DndContext,
@@ -163,7 +163,35 @@ function DraggableCard({ task, projectId }: { task: Task; projectId: string }) {
 
 function Column({ status, tasks, projectId }: { status: TaskStatus; tasks: Task[]; projectId: string }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
-  const taskIds = useMemo(() => tasks.map((t) => t.id), [tasks]);
+
+  // 🔥 Infinite scroll state
+  const [visibleCount, setVisibleCount] = useState(20); // load 20 at a time
+
+  // Load only visible tasks
+  const visibleTasks = useMemo(() => tasks.slice(0, visibleCount), [tasks, visibleCount]);
+
+  // 🔥 Intersection observer to load more
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!loadMoreRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting) {
+          setVisibleCount((v) => v + 20); // Load the next 20 tasks
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(loadMoreRef.current);
+
+    return () => observer.disconnect();
+  }, [tasks]);
+
+  const taskIds = useMemo(() => visibleTasks.map((t) => t.id), [visibleTasks]);
 
   return (
     <div
@@ -175,16 +203,28 @@ function Column({ status, tasks, projectId }: { status: TaskStatus; tasks: Task[
       <h2 className="font-bold text-xl mb-6 text-gray-800">
         {status.replace('_', ' ')}
       </h2>
+
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
         <div className="space-y-4">
-          {tasks.map((task) => (
+          {visibleTasks.map((task) => (
             <DraggableCard key={task.id} task={task} projectId={projectId} />
           ))}
+
+          {/* 🔥 Sentinel to trigger infinite scroll */}
+          {visibleTasks.length < tasks.length && (
+            <div
+              ref={loadMoreRef}
+              className="h-10 flex items-center justify-center text-xs text-gray-400"
+            >
+              Loading more…
+            </div>
+          )}
         </div>
       </SortableContext>
     </div>
   );
 }
+
 
 export function KanbanBoard({ projectId }: { projectId: string }) {
   const { tasks, updateTask } = useTaskStore();

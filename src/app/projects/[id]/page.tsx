@@ -114,10 +114,10 @@ export default function ProjectPage() {
           <div className="flex justify-between items-center max-w-7xl mx-auto">
             <div>
               <h1 className="text-6xl font-black tracking-tight">
-                TaskFlow <span className="text-yellow-400">AI</span>
+                TaskFlow <span className="text-yellow-200">take home project</span>
               </h1>
               <p className="text-2xl mt-3 opacity-90 font-light">
-                Real-time • AI-Powered • Zero Backend • Templates + Autocomplete
+                Real-time • AI-Powered • Collaborative Kanban Board
               </p>
             </div>
             <div className="flex gap-6 items-center">

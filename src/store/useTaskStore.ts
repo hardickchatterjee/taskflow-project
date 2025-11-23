@@ -17,9 +17,9 @@ export interface Task {
   projectId: string;
   title: string;
   status: TaskStatus;
-  assignedTo: string[];
-  configuration: Record<string, any>;
-  dependencies: string[];
+  assignedTo?: string[];
+  configuration?: Record<string, any>;
+  dependencies?: string[];
   comments?: Comment[];
   deletedAt?: number;
 }
@@ -40,8 +40,26 @@ export interface State {
   addProject: (name: string) => void;
   undo: () => void;
   redo: () => void;
+  initDemoData: () => void;
   setTasks: (tasks: Record<string, Task>) => void;
   setProjects: (projects: Record<string, Project>) => void;
+}
+
+// Generate demo tasks
+function generateTasks(count: number) {
+  const tasks: Record<string, Task> = {};
+  for (let i = 0; i < count; i++) {
+    const id = crypto.randomUUID();
+    tasks[id] = {
+      id,
+      title: `Task ${i + 1}`,
+      // description: `Auto-generated task ${i + 1}`,
+      status: 'TODO',
+      projectId: 'demo',
+      comments: [],
+    };
+  }
+  return tasks;
 }
 
 // History outside Zustand (persists across re-renders)
@@ -64,6 +82,32 @@ export const useTaskStore = create<State>()(
       setTasks: (tasks) => set({ tasks }),
       setProjects: (projects) => set({ projects }),
 
+      initDemoData: () => {
+        const tasks: Record<string, Task> = {};
+        const demoProjectId = "demo-project";
+      
+        for (let i = 0; i < 1000; i++) {
+          const id = crypto.randomUUID();
+          tasks[id] = {
+            id,
+            projectId: demoProjectId,
+            title: `Demo Task #${i + 1}`,
+            status: i % 3 === 0 ? "TODO" : i % 3 === 1 ? "IN_PROGRESS" : "DONE",
+            comments: []
+          };
+        }
+      
+        set({
+          tasks,
+          projects: {
+            [demoProjectId]: {
+              id: demoProjectId,
+              name: "Demo Project"
+            }
+          }
+        });
+      },
+      
       addTask: (task: Task) => {
         const current = get().tasks;
         pushToHistory(current);
