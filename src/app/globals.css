@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @custom-variant dark (&:is(.dark *));
 
@@ -130,4 +133,48 @@
 }
 .animate-tilt {
   animation: tilt 12s infinite ease-in-out;
+}
+
+/* ───── DARK MODE MAGIC ───── */
+.dark {
+  color-scheme: dark;
+}
+
+.dark .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #1e1b4b, #2e1065, #1e293b);
+}
+
+.dark .bg-white {
+  @apply bg-gray-900 border-gray-800;
+}
+
+.dark .text-gray-800 {
+  @apply text-gray-100;
+}
+
+.dark .bg-gray-50 {
+  @apply bg-gray-900/80;
+}
+
+.dark .border-gray-300 {
+  @apply border-gray-700;
+}
+
+.dark .bg-gray-100 {
+  @apply bg-gray-800;
+}
+
+.dark .text-gray-600 {
+  @apply text-gray-400;
+}
+
+/* Neon glow for AI button in dark mode */
+.dark .from-pink-500 {
+  --tw-gradient-from: #ec4899;
+  --tw-gradient-to: #f43f5e;
+}
+
+/* Particle glow */
+.dark .bg-white {
+  filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.8));
 }
