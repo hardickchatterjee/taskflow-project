@@ -1,17 +1,25 @@
+// app/projects/[id]/page.tsx
 'use client';
-import { useSyncTaskStoreAcrossTabs } from '@/lib/useSyncTaskStoreAcrossTabs';
+
+import { useParams } from 'next/navigation';
+import { useEffect } from 'react';
 import { useTaskStore } from '@/store/useTaskStore';
+import { useSyncTaskStoreAcrossTabs } from '@/lib/useSyncTaskStoreAcrossTabs';
+import { useSSESync } from '@/lib/useSSESync';
 import { KanbanBoard } from '@/components/KanbanBoard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
 export default function ProjectPage() {
-  useSyncTaskStoreAcrossTabs();
-
   const params = useParams();
   const projectId = params.id as string;
+
+  // THIS LINE WAS MISSING — call the SSE sync hook
+  useSSESync(projectId);
+
+  // Sync across tabs (localStorage)
+  useSyncTaskStoreAcrossTabs();
 
   const addTask = useTaskStore((state) => state.addTask);
   const undo = useTaskStore((state) => state.undo);
@@ -21,7 +29,15 @@ export default function ProjectPage() {
 
   const handleAdd = () => {
     if (newTitle.trim()) {
-      addTask({ id: crypto.randomUUID(), projectId, title: newTitle.trim(), status: 'TODO' });
+      addTask({
+        id: crypto.randomUUID(),
+        projectId,
+        title: newTitle.trim(),
+        status: 'TODO' as const,
+        assignedTo: [],
+        configuration: {},
+        dependencies: [],
+      });
       setNewTitle('');
     }
   };
@@ -31,7 +47,7 @@ export default function ProjectPage() {
       <div className="bg-white border-b px-8 py-6 shadow-sm flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Project Board</h1>
-          <p className="text-gray-600">Add tasks • Drag & drop • Undo/Redo</p>
+          <p className="text-gray-600">Add tasks • Drag & drop • Undo/Redo • Real-time sync</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={undo}>Undo</Button>

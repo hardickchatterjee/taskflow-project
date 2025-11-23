@@ -1,17 +1,29 @@
+// src/store/useTaskStore.ts
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-// ✅ Export TaskStatus and Task
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';
+
+export interface Comment {
+  id: string;
+  taskId: string;
+  author: string;
+  content: string;
+  timestamp: number;
+}
 
 export interface Task {
   id: string;
   projectId: string;
   title: string;
   status: TaskStatus;
+  assignedTo: string[];                    // ← NEW
+  configuration: Record<string, any>;      // ← NEW
+  dependencies: string[];                  // ← NEW
+  comments?: Comment[];
+  deletedAt?: number;                      // ← soft delete
 }
 
-// ✅ Export Project type
 export interface Project {
   id: string;
   name: string;
@@ -24,12 +36,12 @@ export interface State {
   addTask: (task: Task) => void;
   updateTask: (id: string, changes: Partial<Task>) => void;
   addProject: (name: string) => void;
-
   undo: () => void;
   redo: () => void;
-
   setTasks: (tasks: Record<string, Task>) => void;
   setProjects: (projects: Record<string, Project>) => void;
+  addComment: (taskId: string, comment: Comment) => void;
+  deleteComment: (taskId: string, commentId: string) => void;
 }
 
 interface HistoryState {
@@ -38,7 +50,6 @@ interface HistoryState {
   future: Record<string, Task>[];
 }
 
-// ✅ Named export
 export const useTaskStore = create<State>()(
   persist(
     (set, get) => {
@@ -66,7 +77,8 @@ export const useTaskStore = create<State>()(
         updateTask: (id, changes) => {
           const task = get().tasks[id];
           if (!task) return;
-          const newTasks = { ...get().tasks, [id]: { ...task, ...changes } };
+          const updatedTask = { ...task, ...changes };
+          const newTasks = { ...get().tasks, [id]: updatedTask };
           saveHistory(newTasks);
           set({ tasks: newTasks });
         },
@@ -91,6 +103,44 @@ export const useTaskStore = create<State>()(
           history.past.push(history.present);
           history.present = next;
           set({ tasks: next });
+        },
+
+        addComment: (taskId: string, comment: Comment) => {
+          set((state) => {
+            const task = state.tasks[taskId];
+            if (!task) return state;
+        
+            const updatedTask = {
+              ...task,
+              comments: [...(task.comments || []), comment],
+            };
+        
+            return {
+              tasks: {
+                ...state.tasks,
+                [taskId]: updatedTask,
+              },
+            };
+          });
+        },
+        
+        deleteComment: (taskId: string, commentId: string) => {
+          set((state) => {
+            const task = state.tasks[taskId];
+            if (!task?.comments) return state;
+        
+            const updatedTask = {
+              ...task,
+              comments: task.comments.filter((c) => c.id !== commentId),
+            };
+        
+            return {
+              tasks: {
+                ...state.tasks,
+                [taskId]: updatedTask,
+              },
+            };
+          });
         },
       };
     },
