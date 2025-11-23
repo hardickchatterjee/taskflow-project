@@ -146,9 +146,8 @@ function Column({ status, tasks, projectId }: { status: TaskStatus; tasks: Task[
   return (
     <div
       ref={setNodeRef}
-      className={`bg-gray-50 rounded-2xl p-6 min-h-screen border-2 transition-all ${
-        isOver ? 'border-blue-500 bg-blue-50' : 'border-transparent'
-      }`}
+      className={`bg-gray-50 rounded-2xl p-6 min-h-screen border-2 transition-all ${isOver ? 'border-blue-500 bg-blue-50' : 'border-transparent'
+        }`}
     >
       <h2 className="font-bold text-xl mb-6 text-gray-800">{status.replace('_', ' ')}</h2>
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
@@ -165,13 +164,14 @@ function Column({ status, tasks, projectId }: { status: TaskStatus; tasks: Task[
 export function KanbanBoard({ projectId }: { projectId: string }) {
   const { tasks, updateTask } = useTaskStore();
 
-  const activeTasks = useMemo(() => 
+  const activeTasks = useMemo(() =>
     Object.values(tasks).filter(t => t.projectId === projectId && !t.deletedAt),
     [tasks, projectId]
   );
 
   const sensors = useSensors(useSensor(PointerSensor));
 
+  // In handleDragEnd — replace the updateTask call
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -182,8 +182,9 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
 
     const newStatus = over.id as TaskStatus;
     if (newStatus && newStatus !== task.status) {
+      // This will now save to history
       updateTask(task.id, { status: newStatus });
-      // Your broadcast code here
+      // Your broadcast here
     }
   };
 
