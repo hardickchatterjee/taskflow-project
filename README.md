@@ -4,6 +4,10 @@ A modern **Kanban-style project management system** built with **Next.js (App Ro
 Designed for **speed**, **smooth drag-and-drop**, **infinite scroll** for huge task lists, and **offline-friendly state persistence**.
 
 ---
+## 🚀 Video Link
+The video explaining the features of the project can be found in this link
+https://vimeo.com/1139915705/fc6cc84729?share=copy&fl=sv&fe=ci
+
 
 ## 🚀 Features
 
