@@ -113,13 +113,18 @@ GEMINI_API_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-1
 ### Build the image
 
 ```bash
-docker build -t taskflow-project .
+docker build \                    
+  --build-arg DATABASE_URL="file:./dev.db" \
+  --build-arg NEXT_PUBLIC_SOCKET_URL="http://localhost:3000" \
+  --build-arg GEMINI_API_KEY="AIzaSyB6eNILabOMWhs5bSJJeBXn_YSyyUrUK-Q" \
+  --build-arg GEMINI_API_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key" \
+  -t taskflow-app .
 ```
 
 ### Run container
 
 ```bash
-docker run -p 3000:3000 taskflow-project
+docker run -p 3000:3000 taskflow-app
 ```
 
 Visit:
