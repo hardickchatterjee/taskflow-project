@@ -14,9 +14,9 @@ Designed for **speed**, **smooth drag-and-drop**, **infinite scroll** for huge t
 - ♾️ Infinite scroll with `IntersectionObserver` (20 tasks at a time)  
 - 📌 Task dependencies  
 - 💬 Inline comments per task  
-- 🗑️ Soft delete system  
+- 🗑️ Delete system  
 - 🌗 Sweet UI with Tailwind + shadcn/ui  
-- 🐳 Fully Dockerized for production  
+- 🐳 Fully Dockerized 
 
 ---
 
@@ -62,8 +62,8 @@ README.md
 Clone the repo:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
+git clone https://github.com/hardickchatterjee/taskflow-project.git
+cd taskflow-project
 ```
 
 Install dependencies:
@@ -95,9 +95,11 @@ http://localhost:3000
 Create a `.env.local` file:
 
 ```
-NEXT_PUBLIC_API_URL=http://localhost:3000
-SSE_URL=http://localhost:3000/api/events
-NODE_ENV=development
+DATABASE_URL="file:./dev.db"
+GROQ_API_KEY="gsk_XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+NEXT_PUBLIC_SOCKET_URL="http://localhost:3000"
+GEMINI_API_KEY="AIzaSyB6eNILabOMWhs5bSJJeBXn_YSyyUrUK-Q"
+GEMINI_API_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key"
 ```
 
 ---
@@ -107,13 +109,13 @@ NODE_ENV=development
 ### Build the image
 
 ```bash
-docker build -t kanban-app .
+docker build -t taskflow-project .
 ```
 
 ### Run container
 
 ```bash
-docker run -p 3000:3000 kanban-app
+docker run -p 3000:3000 taskflow-project
 ```
 
 Visit:
@@ -124,37 +126,6 @@ http://localhost:3000
 
 ---
 
-## 🐳 Docker Compose (Recommended)
-
-`docker-compose.yml` example:
-
-```yaml
-version: '3.9'
-
-services:
-  web:
-    build: .
-    container_name: kanban-web
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-    restart: always
-```
-
-Run:
-
-```bash
-docker-compose up --build
-```
-
-Stop:
-
-```bash
-docker-compose down
-```
-
----
 
 ## 🏗️ Build for Production
 
@@ -164,76 +135,63 @@ npm run start
 ```
 
 ---
+## 🏗️ Architecture Decisions
 
-## 🔥 Key System Highlights
-
-### ✔ Drag-and-drop (DnD-Kit)
-
-Uses:
-
-```ts
-DndContext
-SortableContext
-PointerSensor
-useSortable
-```
-
-Smooth reordering + reactive Zustand updates.
+- **Frontend:** Next.js App Router + React Server/Client Components.  
+- **State Management:** Zustand with persistence in `localStorage`. Supports undo/redo and cross-tab syncing.  
+- **Drag-and-Drop:** `@dnd-kit` for precise, accessible, and performant task reordering.  
+- **Realtime Sync:** SSE (Server-Sent Events) with in-memory global queue for broadcasting updates.  
+- **Infinite Scroll:** IntersectionObserver for large task lists (lazy loading in batches of 20).  
 
 ---
 
-### ✔ Infinite Scroll (Handles 1000+ tasks smoothly)
+## 🔄 How Sync Works
 
-Events:
-
-```ts
-tasks.slice(0, visibleCount)
-IntersectionObserver → visibleCount += 20
-```
+1. **Cross-tab Sync:** Uses `localStorage` events to merge state changes across tabs.
+2. **Realtime Collaboration:** SSE endpoint `/api/events` streams batched updates (tasks/comments) to all clients.  
+3. **Queue System:** Server maintains an in-memory event queue, filters by project, sends events every 100ms.  
+4. **Client Handling:** React hook `useSSESync` listens for SSE messages and updates Zustand store instantly.  
 
 ---
 
-### ✔ Real-Time Syncing via SSE
+## 📈 Scaling the System
 
-- Clients connect to `/api/events?projectId=xyz`
-- Server streams updates in batches every 100ms
-- Lightweight alternative to WebSockets
-
----
-
-### ✔ Cross-Tab Syncing
-
-`useSyncTaskStoreAcrossTabs.ts` listens for `localStorage` updates:
-
-- Tab A changes instantly show in Tab B  
-- Tasks, comments, dependencies merge safely  
+- **Current Tradeoff:** In-memory queue is simple but won’t persist across server restarts or scale horizontally.  
+- **Scaling Ideas:**  
+  - Move event queue to Redis Pub/Sub for horizontal scaling.  
+  - Implement WebSocket-based channels for lower latency.  
+  - Split projects across microservices for very large teams.  
+  - Use database persistence with event sourcing for durability.  
 
 ---
 
-## 🧪 Testing
+## ⚖ Tradeoffs
 
-```bash
-npm run test
-```
-
----
-
-## 🌎 Deploy on Vercel
-
-```bash
-vercel
-```
-
-Or visit: [https://vercel.com/new](https://vercel.com/new)
+- **Simplicity vs Durability:** In-memory SSE queue is lightweight but volatile.  
+- **Realtime vs Complexity:** SSE chosen over WebSocket for simplicity; limited bidirectional messaging.  
+- **Frontend-heavy State:** Zustand handles optimistic updates and undo/redo, but may increase memory usage for huge task sets.  
 
 ---
 
-## 🤝 Contributing
+## 🛠 Technology Choices & Justifications
 
-PRs welcome! Open issues or feature requests are encouraged.
+- **Next.js (App Router):** Server Components + client interactivity for hybrid rendering.  
+- **Zustand:** Lightweight, reactive, and supports local persistence.  
+- **TypeScript:** Type safety across tasks, comments, and state actions.  
+- **DnD-Kit:** Flexible, accessible drag-and-drop solution.  
+- **Tailwind + shadcn/ui:** Rapid UI development and responsive design.  
+- **SSE:** Simple, low-overhead realtime updates.  
 
 ---
 
-## 📄 License
+## 🔁 Data Flow & Synchronization Strategy
 
-MIT License.
+1. **User adds/updates a task or comment** → Zustand updates store → optionally broadcasts via `/api/events/broadcast`.  
+2. **SSE clients receive batch updates** → `useSSESync` updates local state in realtime.  
+3. **Cross-tab changes** → `localStorage` events merge tasks safely.  
+4. **Deleted tasks** are soft-deleted (`deletedAt`) and removed from Kanban view.  
+5. **Dependencies and comments** are merged carefully to avoid overwrites.  
+
+This ensures **fast, collaborative, and consistent state** across tabs and users while keeping the system simple and extendable.  
+
+---
