@@ -1,6 +1,6 @@
 'use client';
 
-import socket from '@/lib/socket';
+// import socket from '@/lib/socket';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
 
@@ -21,10 +21,10 @@ export function ActivityFeed({ projectId }: { projectId: string }) {
       }
     };
 
-    socket.on('update', handler);
+    // socket.on('update', handler);
 
     return () => {
-      socket.off('update', handler);
+      // socket.off('update', handler);
     };
   }, [projectId]);
 
