@@ -189,7 +189,7 @@ export const useTaskStore = create<State>()(
     {
       name: 'taskflow-store',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ tasks: state.tasks }), // Only persist tasks
+      partialize: (state) => ({ tasks: state.tasks }), 
     }
   )
 );

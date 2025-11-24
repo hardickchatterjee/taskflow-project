@@ -22,7 +22,7 @@ export default function ProjectPage() {
   const [newTitle, setNewTitle] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // AI Title Suggestions as you type (Copilot-style)
+  // AI Title Suggestions as you type
   useEffect(() => {
     if (!newTitle.trim()) return;
 

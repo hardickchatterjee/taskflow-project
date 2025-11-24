@@ -15,7 +15,7 @@ export const POST = async (req: NextRequest) => {
   if (process.env.GEMINI_API_KEY && title) {
     try {
       const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `${process.env.GEMINI_API_URL}${process.env.GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -53,8 +53,7 @@ Respond ONLY with valid JSON (no markdown, no extra text):
       // → continue to fallback
     }
   }
-
-  // ——— Bulletproof rule-based fallback (always works) ———
+    // ——— Fallback: Simple rule-based AI ———
   const lower = title.toLowerCase();
 
   let status: 'TODO' | 'IN_PROGRESS' | 'DONE' = 'TODO';

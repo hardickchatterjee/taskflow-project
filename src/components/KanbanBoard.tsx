@@ -180,7 +180,7 @@ function Column({ status, tasks, projectId }: { status: TaskStatus; tasks: Task[
       (entries) => {
         const first = entries[0];
         if (first.isIntersecting) {
-          setVisibleCount((v) => v + 20); // Load the next 20 tasks
+          setVisibleCount((v) => v + 20);
         }
       },
       { threshold: 1 }

@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-black via-gray-900 to-purple-900 p-8">
 
-      {/* ⭐ Animated Star Field Background */}
+      {/*  Animated Star Field Background */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15),transparent_70%)] opacity-20"></div>
       <div className="stars"></div>
       <div className="twinkling"></div>
@@ -88,7 +88,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ⭐ Custom Animations */}
+      {/*  Custom Animations */}
       <style>{`
         .stars, .twinkling {
           position: absolute;

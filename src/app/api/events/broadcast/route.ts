@@ -1,7 +1,7 @@
 // app/api/events/broadcast/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-// THIS LINE WAS MISSING — this is the shared in-memory queue
+
 const eventQueue: Array<{ projectId: string; event: any }> = (global as any).eventQueue || [];
 (global as any).eventQueue = eventQueue; // persist across requests
 

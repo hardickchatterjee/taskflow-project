@@ -1,36 +1,239 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📌 Kanban Realtime Task Manager
 
-## Getting Started
+A modern **Kanban-style project management system** built with **Next.js (App Router)**, **Zustand**, **TypeScript**, **DnD-Kit**, and **Realtime Syncing via SSE**.  
+Designed for **speed**, **smooth drag-and-drop**, **infinite scroll** for huge task lists, and **offline-friendly state persistence**.
 
-First, run the development server:
+---
+
+## 🚀 Features
+
+- ⚡ Fast Next.js App Router structure  
+- 🔄 Realtime syncing using **Server-Sent Events (SSE)**  
+- 🗂️ Zustand store for global, reactive state  
+- 🧲 Drag-and-drop via `@dnd-kit`  
+- ♾️ Infinite scroll with `IntersectionObserver` (20 tasks at a time)  
+- 📌 Task dependencies  
+- 💬 Inline comments per task  
+- 🗑️ Soft delete system  
+- 🌗 Sweet UI with Tailwind + shadcn/ui  
+- 🐳 Fully Dockerized for production  
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+  app/
+    layout.tsx
+    page.tsx
+    projects/
+      [projectId]/
+        page.tsx
+  components/
+    KanbanBoard.tsx
+    ui/
+      button.tsx
+      card.tsx
+      input.tsx
+  store/
+    useTaskStore.ts
+  lib/
+    useSSESync.ts
+    useSyncTaskStoreAcrossTabs.ts
+public/
+Dockerfile
+docker-compose.yml
+README.md
+```
+
+---
+
+## 🛠️ Requirements
+
+- Node 18+
+- pnpm / npm / yarn / bun
+- Docker (optional but recommended)
+
+---
+
+## 📦 Install & Run Locally
+
+Clone the repo:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+cd YOUR_REPO
+```
+
+Install dependencies:
+
+```bash
+npm install
+# or
+pnpm install
+# or
+yarn install
+```
+
+Run development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open in browser:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🔧 Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+Create a `.env.local` file:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+NEXT_PUBLIC_API_URL=http://localhost:3000
+SSE_URL=http://localhost:3000/api/events
+NODE_ENV=development
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🐳 Run with Docker
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Build the image
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+docker build -t kanban-app .
+```
+
+### Run container
+
+```bash
+docker run -p 3000:3000 kanban-app
+```
+
+Visit:
+
+```
+http://localhost:3000
+```
+
+---
+
+## 🐳 Docker Compose (Recommended)
+
+`docker-compose.yml` example:
+
+```yaml
+version: '3.9'
+
+services:
+  web:
+    build: .
+    container_name: kanban-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: always
+```
+
+Run:
+
+```bash
+docker-compose up --build
+```
+
+Stop:
+
+```bash
+docker-compose down
+```
+
+---
+
+## 🏗️ Build for Production
+
+```bash
+npm run build
+npm run start
+```
+
+---
+
+## 🔥 Key System Highlights
+
+### ✔ Drag-and-drop (DnD-Kit)
+
+Uses:
+
+```ts
+DndContext
+SortableContext
+PointerSensor
+useSortable
+```
+
+Smooth reordering + reactive Zustand updates.
+
+---
+
+### ✔ Infinite Scroll (Handles 1000+ tasks smoothly)
+
+Events:
+
+```ts
+tasks.slice(0, visibleCount)
+IntersectionObserver → visibleCount += 20
+```
+
+---
+
+### ✔ Real-Time Syncing via SSE
+
+- Clients connect to `/api/events?projectId=xyz`
+- Server streams updates in batches every 100ms
+- Lightweight alternative to WebSockets
+
+---
+
+### ✔ Cross-Tab Syncing
+
+`useSyncTaskStoreAcrossTabs.ts` listens for `localStorage` updates:
+
+- Tab A changes instantly show in Tab B  
+- Tasks, comments, dependencies merge safely  
+
+---
+
+## 🧪 Testing
+
+```bash
+npm run test
+```
+
+---
+
+## 🌎 Deploy on Vercel
+
+```bash
+vercel
+```
+
+Or visit: [https://vercel.com/new](https://vercel.com/new)
+
+---
+
+## 🤝 Contributing
+
+PRs welcome! Open issues or feature requests are encouraged.
+
+---
+
+## 📄 License
+
+MIT License.

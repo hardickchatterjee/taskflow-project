@@ -14,9 +14,9 @@ export interface Task {
   projectId: string;
   title: string;
   status: TaskStatus;
-  assignedTo: string[];        // parsed JSON
+  assignedTo: string[];   
   configuration: Record<string, any>;
-  dependencies: string[];      // task IDs this task depends on
+  dependencies: string[];
   comments?: Comment[];
-  deletedAt?: number;          // soft delete timestamp
+  deletedAt?: number;     
 }
