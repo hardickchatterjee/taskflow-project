@@ -6,7 +6,7 @@ Designed for **speed**, **smooth drag-and-drop**, **infinite scroll** for huge t
 ---
 ## 🚀 Video Link
 The video explaining the features of the project can be found in this link
-https://vimeo.com/1139915705/fc6cc84729?share=copy&fl=sv&fe=ci
+https://vimeo.com/1140229872/40b806bf13
 
 
 ## 🚀 Features
